@@ -1,0 +1,16 @@
+#!/opt/puppetlabs/puppet/bin/ruby
+
+require 'json'
+require 'yaml'
+
+puppetCmd = 'puppet'
+facts = %x(#{puppetCmd} facts)
+facts_j = JSON.parse(facts)
+facts_y = YAML.dump(facts_j['values'])
+yaml_file = '<%= scope.lookupvar('yamlfile') %>'
+
+File.open("#{yaml_file}.new", 'w') fo |f|
+  f.puts facts_y
+end
+
+File.rename("#{yaml_file}.new", "#{yaml_file}")

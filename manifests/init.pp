@@ -77,6 +77,7 @@ class mcollective(
   # These values tend to be common based on operating system
   $etcdir               =  $mcollective::params::etcdir,
   $libdir               =  $mcollective::params::libdir,
+  $classdir             =  $mcollective::params::classdir,
   $logfile              =  $mcollective::params::logfile,
   $stomp_package        =  $mcollective::params::stomp_package,
   $stomp_version        =  'latest',
@@ -130,25 +131,35 @@ class mcollective(
     ensure => $stomp_version,
   }
 
+  # All files in this manifets should grant access to system admin
+  case $::osfamily {
+    /(?i-mx:windows)/ : {
+      File {
+        owner => 'Administrators',
+        group => 'Administrators',
+      }
+    }
+    default : {
+      File {
+        owner => 0,
+        group => 0,
+      }
+    }
+  }
+
   # ensure the ssl directory exists for the lient and server modules
   if( ( $mcollective::security_provider == 'aes_security' ) or ( $mcollective::security_provider == 'ssl' ) ) {
     file { "${etcdir}/ssl":
       ensure => directory,
-      owner  => 0,
-      group  => 0,
       mode   => '0555',
     }
     if( $mcollective::security_provider == 'ssl' ) {
       file { "${etcdir}/ssl/server":
         ensure => directory,
-        owner  => 0,
-        group  => 0,
         mode   => '0555',
       }
       @file { "${etcdir}/ssl/server/public.pem":
         ensure  => file,
-        owner   => 0,
-        group   => 0,
         mode    => '0444',
         links   => follow,
         replace => true,

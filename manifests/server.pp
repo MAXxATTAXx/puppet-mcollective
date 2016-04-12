@@ -191,10 +191,24 @@ class mcollective::server(
     notify => Service[ $service ],
   }
 
+  # Make sure every file is exclusive for platform admins
+  case $::osfamily {
+    'Windows': {
+      File {
+        owner => 'Administrators',
+        group => 'Administrators',
+      }
+    }
+    default: {
+      File {
+        owner => 0,
+        group => 0,
+      }
+    }
+  }
+
   file { "${etcdir}/server.cfg":
     ensure  => file,
-    owner   => 0,
-    group   => 0,
     mode    => '0400',
     content => template( 'mcollective/server.cfg.erb' ),
     require => Package[ $package ],
@@ -208,8 +222,6 @@ class mcollective::server(
     # copy client public keys to all servers
     file { "${etcdir}/ssl/clients":
       ensure  => directory,
-      owner   => 0,
-      group   => 0,
       mode    => '0755',
       links   => follow,
       purge   => true,
@@ -228,8 +240,6 @@ class mcollective::server(
       # ...and the private key
       file { "${etcdir}/ssl/server/private.pem":
         ensure  => file,
-        owner   => 0,
-        group   => 0,
         mode    => '0400',
         links   => follow,
         replace => true,
@@ -245,8 +255,6 @@ class mcollective::server(
     # Copy any files from the policies directory
     file { "${etcdir}/policies":
       ensure  => directory,
-      owner   => 0,
-      group   => 0,
       mode    => '0444',
       links   => follow,
       recurse => true,
@@ -260,8 +268,6 @@ class mcollective::server(
 
     file { "${libdir}/mcollective/util":
       ensure  => directory,
-      owner   => 0,
-      group   => 0,
       mode    => '0755',
       require => Package[ $package ],
       before  => Service[ $service ],
@@ -269,8 +275,6 @@ class mcollective::server(
 
     file { "${libdir}/mcollective/util/actionpolicy.rb":
       ensure  => file,
-      owner   => 0,
-      group   => 0,
       mode    => '0444',
       source  => 'puppet:///modules/mcollective/actionpolicy-auth/util/actionpolicy.rb',
       require => File["${etcdir}/server.cfg"],
@@ -279,8 +283,6 @@ class mcollective::server(
 
     file { "${libdir}/mcollective/util/actionpolicy.ddl":
       ensure  => file,
-      owner   => 0,
-      group   => 0,
       mode    => '0444',
       source  => 'puppet:///modules/mcollective/actionpolicy-auth/util/actionpolicy.ddl',
       require => File["${etcdir}/server.cfg"],

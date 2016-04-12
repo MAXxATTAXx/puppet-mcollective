@@ -5,8 +5,11 @@
 class mcollective::params {
   # Default locations for certain os combinations
   $etcdir = $::clientversion ? {
-    /(?:4\.)/  => '/etc/puppetlabs/mcollective',
-    default    => $::osfamily ? {
+    /(?:4\.)/ => $::osfamily ? {
+      /(?i-mx:windows)/ => 'C:/ProgramData/PuppetLabs/mcollective/etc',
+      default           => '/etc/puppetlabs/mcollective',
+    },
+    default   => $::osfamily ? {
       /(?i-mx:redhat)/  => '/etc/mcollective',
       /(?i-mx:debian)/  => '/etc/mcollective',
       /(?i-mx:freebsd)/ => '/usr/local/etc/mcollective',
@@ -14,7 +17,13 @@ class mcollective::params {
     }
   }
 
+  $classdir = $::osfamily ? {
+    /(?i-mx:windows)/ => 'C:/ProgramData/PuppetLabs/puppet/var/state',
+    default           => '/opt/puppetlabs/puppet/cache/state',
+  }
+
   $logrotate_directory = $::osfamily ? {
+    /(?i-mx:windows)/ => "${::osfamily} does not supports logrotate",
     /(?i-mx:freebsd)/ => '/usr/local/etc/logrotate.d',
     default           => '/etc/logrotate.d',
   }
@@ -22,6 +31,7 @@ class mcollective::params {
   $libdir = $::osfamily ? {
     /(?i-mx:redhat)/  => '/usr/libexec/mcollective',
     /(?i-mx:debian)/  => '/usr/share/mcollective/plugins',
+    /(?i-mx:windows)/ => 'C:/ProgramData/PuppetLabs/mcollective/plugins',
     /(?i-mx:freebsd)/ => '/usr/local/share',
     default           => '/usr/libexec/mcollective',
   }
@@ -30,6 +40,7 @@ class mcollective::params {
   $stomp_package = $::osfamily ? {
     /(?i-mx:redhat)/  => 'rubygem-stomp',
     /(?i-mx:debian)/  => 'ruby-stomp',
+    /(?i-mx:windows)/ => 'rubygem-stomp',
     /(?i-mx:freebsd)/ => 'devel/rubygem-stomp',
     default           => 'rubygem-stomp',
   }
@@ -38,6 +49,7 @@ class mcollective::params {
   $package_name = $::osfamily ? {
     /(?i-mx:redhat)/  => 'mcollective',
     /(?i-mx:debian)/  => 'mcollective',
+    /(?i-mx:windows)/ => 'mcollective',
     /(?i-mx:freebsd)/ => 'sysutils/mcollective',
     default           => 'mcollective',
   }
@@ -45,6 +57,7 @@ class mcollective::params {
   $client_package_name = $::osfamily ? {
     /(?i-mx:redhat)/  => 'mcollective-client',
     /(?i-mx:debian)/  => 'mcollective-client',
+    /(?i-mx:windows)/ => 'mcollective-client',
     /(?i-mx:freebsd)/ => 'sysutils/mcollective-client',
     default           => 'mcollective-client',
   }
@@ -52,12 +65,16 @@ class mcollective::params {
   $service_name = $::osfamily ? {
     /(?i-mx:redhat)/  => 'mcollective',
     /(?i-mx:debian)/  => 'mcollective',
+    /(?i-mx:windows)/ => 'mcollective',
     /(?i-mx:freebsd)/ => 'mcollectived',
     default           => 'mcollective-client',
   }
 
   # Logfile locations (all platforms seem identical for this for now)
-  $logfile = '/var/log/mcollective.log'
+  $logfile = $::osfamily ? {
+    /(?i-mx:windows)/ => 'C:/ProgramData/PuppetLabs/mcollective/var/log/mcollective.txt',
+    default         => '/var/log/mcollective.log',
+  }
 
   # These appear to be the same for all platforms
   $activemq_config_file  = 'activemq.xml'
@@ -67,6 +84,7 @@ class mcollective::params {
   $activemq_package_name = $::osfamily ? {
     /(?i-mx:redhat)/  => 'activemq',
     /(?i-mx:debian)/  => 'activemq',
+    /(?i-mx:windows)/ => undef,
     /(?i-mx:freebsd)/ => 'net/activemq',
     default           => 'activemq',
   }
@@ -74,6 +92,7 @@ class mcollective::params {
   $activemq_directory = $::osfamily ? {
     /(?i-mx:redhat)/  => '/etc/activemq',
     /(?i-mx:debian)/  => '/etc/activemq',
+    /(?i-mx:windows)/ => undef,
     /(?i-mx:freebsd)/ => '/usr/local/etc/activemq',
     default           => '/etc/activemq',
   }
@@ -81,6 +100,7 @@ class mcollective::params {
   $activemq_defaults_file = $::osfamily ? {
     /(?i-mx:redhat)/  => '/etc/sysconfig/activemq',
     /(?i-mx:debian)/  => '/etc/default/activemq',
+    /(?i-mx:windows)/ => undef,
     /(?i-mx:freebsd)/ => undef,
     default           => undef,
   }

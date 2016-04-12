@@ -20,18 +20,59 @@ inherits mcollective {
     default   => 'present',
   }
 
-  # Define the minute to be all if runevery wasn't defined
-  $minute = $enable ? {
-    'absent'  => '*',
-    'present' => "*/${run_every}",
-  }
-  
   # shorten for ease of use
   $yamlfile = "${mcollective::etcdir}/facts.yaml"
 
-  cron { 'mcollective-facts':
-    ensure  => $enable,
-    command => "facter --puppet --yaml > ${yamlfile}.new && ! diff -q ${yamlfile}.new ${yamlfile} > /dev/null && mv -f ${yamlfile}.new ${yamlfile}",
-    minute  => $minute,
+  case $::osfamily {
+    'Windows': {
+      $windowspath = regsubst($mcollective::etcdir, '/', '\\\\\\', 'G')
+
+      $file = $enable ? {
+        'present' => 'file',
+        default   => 'absent',
+      }
+      file { "${mcollective::etcdir}/refresh-mcollective-metadata.bat":
+        ensure  => $file,
+        owner   => 'Administrators',
+        group   => 'Administrators',
+        mode    => '0555',
+        replace => true,
+        content => template('mcollective/refresh-mcolletive-metadata.bat.erb'),
+      }
+      file { "${mcollective::etcdir}/refresh-mcollective-metadata.rb":
+        ensure  => $file,
+        owner   => 'Administrators',
+        group   => 'Administrators',
+        mode    => '0555',
+        replace => true,
+        content => template('mcollective/refresh-mcollective-metadata.rb.erb'),
+      }
+      scheduled_task { 'mcollective-facts':
+        ensure  => $enable,
+        command => "${windowspath}\\refresh-mcollective-metadata.bat",
+        trigger => {
+          schedule         => daily,
+          start_time       => '00:00',
+          minutes_interval => $run_every,
+          minutes_duration => $run_every + 1,
+        },
+        require => [
+          File["${mcollective::etcdir}/refresh-mcollective-metadata.rb"],
+          File["${mcollective::etcdir}/refresh-mcollective-metadata.bat"]
+        ]
+      }
+    }
+    default: {
+      # Define the minute to be all if runevery wasn't defined
+      $minute = $enable ? {
+        'absent'  => '*',
+        'present' => "*/${run_every}",
+      }
+      cron { 'mcollective-facts':
+        ensure  => $enable,
+        command => "facter --puppet --yaml > ${yamlfile}.new && ! diff -q ${yamlfile}.new ${yamlfile} > /dev/null && mv -f ${yamlfile}.new ${yamlfile}",
+        minute  => $minute,
+      }
+    }
   }
 }

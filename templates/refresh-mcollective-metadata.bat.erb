@@ -1,0 +1,6 @@
+@echo off
+SETLOCAL
+
+call "<%= scope.lookupvar('::env_windows_installdir') %>\bin\environment.bat"
+
+ruby "<%= scope.lookupvar('mcollective::etcdir') %>\refresh-mcollective-metadata.rb"
