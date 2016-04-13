@@ -191,6 +191,9 @@ class mcollective::server(
       ensure => $version,
       notify => Service[ $service ],
     }
+    $requirement = [ Package[ $package ] ]
+  } else {
+    $requirement = []
   }
 
   # Make sure every file is exclusive for platform admins
@@ -213,7 +216,7 @@ class mcollective::server(
     ensure  => file,
     mode    => '0400',
     content => template( 'mcollective/server.cfg.erb' ),
-    require => Package[ $package ],
+    require => $requirement,
     notify  => Service[ $service ],
   }
 
@@ -230,7 +233,7 @@ class mcollective::server(
       force   => true,
       recurse => true,
       source  => 'puppet:///modules/mcollective/ssl/clients',
-      require => Package[ $package ],
+      require => $requirement,
       before  => Service[ $service ],
     }
 
@@ -246,7 +249,7 @@ class mcollective::server(
         links   => follow,
         replace => true,
         source  => 'puppet:///modules/mcollective/ssl/server/private.pem',
-        require => [ Package[ $package ], File["${etcdir}/ssl/server/public.pem"] ],
+        require => union($requirement,[ File["${etcdir}/ssl/server/public.pem"] ]),
         before  => Service[ $service ],
       }
     }
@@ -264,14 +267,14 @@ class mcollective::server(
       force   => true,
       purge   => false,
       source  => 'puppet:///modules/mcollective/policies',
-      require => Package[ $package ],
+      require => $requirement,
       before  => Service[ $service ],
     }
 
     file { "${libdir}/mcollective/util":
       ensure  => directory,
       mode    => '0755',
-      require => Package[ $package ],
+      require => $requirement,
       before  => Service[ $service ],
     }
 
@@ -302,7 +305,7 @@ class mcollective::server(
   service { $service:
     ensure  => $ensure,
     enable  => $enable,
-    require => Package[ $package ],
+    require => $requirement,
   }
 
   # Load in all the appropriate mcollective agents
