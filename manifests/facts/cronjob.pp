@@ -26,6 +26,10 @@ inherits mcollective {
   case $::osfamily {
     'Windows': {
       $windowspath = regsubst($mcollective::etcdir, '/', '\\\\\\', 'G')
+      $minute = is_integer($run_every) ? {
+        true    => $run_every,
+        default => 1,
+      }
 
       $file = $enable ? {
         'present' => 'file',
@@ -37,7 +41,7 @@ inherits mcollective {
         group   => 'Administrators',
         mode    => '0555',
         replace => true,
-        content => template('mcollective/refresh-mcolletive-metadata.bat.erb'),
+        content => template('mcollective/refresh-mcollective-metadata.bat.erb'),
       }
       file { "${mcollective::etcdir}/refresh-mcollective-metadata.rb":
         ensure  => $file,
@@ -53,8 +57,8 @@ inherits mcollective {
         trigger => {
           schedule         => daily,
           start_time       => '00:00',
-          minutes_interval => $run_every,
-          minutes_duration => $run_every + 1,
+          minutes_interval => $minute,
+          minutes_duration => $minute + 1,
         },
         require => [
           File["${mcollective::etcdir}/refresh-mcollective-metadata.rb"],

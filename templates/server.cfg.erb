@@ -125,7 +125,7 @@ max_log_size = <%= @max_log_size %>
 daemonize = 1
 libdir = <%= scope.lookupvar('mcollective::libdir') %>
 <% if( scope.lookupvar('::clientversion').to_f >= 4.0 ) then -%>
-        <% if( scope.lookupvar('::osfamily') == 'Windows' then -%>
+        <% if( scope.lookupvar('::osfamily') == 'Windows' ) then -%>
 libdir = C:/ProgramData/PuppetLabs/mcollective/etc/plugins
         <% else -%>
 libdir = /opt/puppetlabs/mcollective/plugins

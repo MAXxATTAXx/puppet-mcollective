@@ -126,9 +126,11 @@ class mcollective(
     $_port = $connector_ssl ? { true => 61614, default => 61613 }
   }
 
-  # Ensure that the common dependency is up to date
-  package { $stomp_package:
-    ensure => $stomp_version,
+  # Ensure that the common dependency is up to date, windows installation already have stomp
+  if( $::osfamily != 'Windows' ) {
+    package { $stomp_package:
+      ensure => $stomp_version,
+    }
   }
 
   # All files in this manifets should grant access to system admin

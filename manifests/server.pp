@@ -186,9 +186,11 @@ class mcollective::server(
   include mcollective::facts::cronjob
 
   # Now install the packages
-  package { $package:
-    ensure => $version,
-    notify => Service[ $service ],
+  if( $::osfamily != 'Windows' ) {
+    package { $package:
+      ensure => $version,
+      notify => Service[ $service ],
+    }
   }
 
   # Make sure every file is exclusive for platform admins
