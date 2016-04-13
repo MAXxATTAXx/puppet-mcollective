@@ -23,7 +23,7 @@ class mcollective::params {
   }
 
   $logrotate_directory = $::osfamily ? {
-    /(?i-mx:windows)/ => "${::osfamily} does not supports logrotate",
+    /(?i-mx:windows)/ => undef,
     /(?i-mx:freebsd)/ => '/usr/local/etc/logrotate.d',
     default           => '/etc/logrotate.d',
   }
